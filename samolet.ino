@@ -8,7 +8,6 @@
 #include <OneWire.h>
 #include <DallasTemperature.h>
 #include "FS.h"
-#include "Page.h"
 
 
 //++ Взятие температуры
@@ -172,11 +171,6 @@ void wi_setup(){
   void start_server(){
     //Page - home
     server.on("/", Handle_home);
-    // Page - config
-    server.on("/config", [](){
-      String page_config = Page_config();
-      server.send(200, "text/html", page_config);
-    });
     server.on("/get_temperature", [](){
       String temp_to_get = String(temperature);
       server.send(200, "text/html", temp_to_get);
@@ -188,14 +182,15 @@ void wi_setup(){
 //--
 //++ Фукции роутера
   void Handle_home(){
+    String s = "File open filed";
     File f = SPIFFS.open("/home.html", "r");
     if (!f) {
         Serial.println("file open failed");
     }
-    String s = f.readStringUntil('&');
-    String page_home = Page_home();
-//    for (int i=1; i<=14; i++){
-//    }
+    else{
+      s = f.readStringUntil('&');
+    }
+    
     server.send(200, "text/html", s);
     f.close();
   }
