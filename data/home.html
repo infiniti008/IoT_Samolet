@@ -13,20 +13,28 @@
             <hr>
             <span>Температура воздуха за бортом</span><br>
             <span id="temp">25&deg;C</span>
-            <hr>
         </header>
         <main>
-
+            <form id="config_wifi" class="form_wifi" action="/cunfigure_wifi" method="get">
+                <input type="text" name="ssid" placeholder="SSID" form="config_wifi"><br><br>
+                <input type="text" name="pass" placeholder="Password" form="config_wifi"><br>
+                <input type="submit" class="btn_confirm" value="Применить настройки WiFi" form="config_wifi">
+            </form>
+            <form id="config_time" class="form" action="/cunfigure_time" method="get">
+                <label for="delay_get_temp">Время между <i>сканированиями</i> датчика <b>температуры</b> (макс 250)</label><br>
+                <input id="delay_get_temp" type="number" name="delay_get_temp" placeholder="В секундах" form="config_time"><br>
+                <label for="delay_led_temp">Время между <i>миганиями</i> светодиода <b>температуры</b> (макс 250)</label><br>
+                <input id="delay_led_temp" type="number" name="delay_led_temp" placeholder="В секундах" form="config_time"><br>
+                <label for="delay_led_wifi">Время между <i>миганиями</i> светодиода <b>статуса WiFi</b> (макс 250)</label><br>
+                <input id="delay_led_wifi" type="number" name="delay_led_wifi" placeholder="В секундах" form="config_time"><br>
+                <input type="submit" class="btn_confirm" value="Применить настройки времени" form="config_time">
+            </form>
         </main>
         <footer>
 
         </footer>
-        <a href="/" class="c">Главная страница</a>
-        <a href="/add" class="c">Добавит новую запись</a>
-        <a href="/run_macros" class="c">Запустить макросы</a>
-        <a href="/curr" class="c">Просмотреть предстоящие</a>
     </div>
 </body>
 
 </html>
-<!--&-->
+^

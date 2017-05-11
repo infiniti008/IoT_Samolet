@@ -50,6 +50,7 @@ ESP8266WebServer server(80);
 void setup() {
   Serial.begin(115200);
   SPIFFS.begin();
+  test();
   //++ Старт обработки датчика температуры
     sensors.begin();
     get_temp();
@@ -175,9 +176,12 @@ void wi_setup(){
       String temp_to_get = String(temperature);
       server.send(200, "text/html", temp_to_get);
     });
+    server.on("/cunfigure_wifi", Handle_cunfigure_wifi);
+    server.on("/cunfigure_time", Handle_cunfigure_time);
+    server.on("/format_spiffs", Handle_format_spiffs);
     server.begin();
     Serial.println("HTTP server started");
-    server.serveStatic("/", SPIFFS, "/", "max-age=86400");
+    server.serveStatic("/", SPIFFS, "/", "max-age=300"); //86400
   }
 //--
 //++ Фукции роутера
@@ -188,11 +192,22 @@ void wi_setup(){
         Serial.println("file open failed");
     }
     else{
-      s = f.readStringUntil('&');
+      s = f.readStringUntil('^');
     }
-    
     server.send(200, "text/html", s);
     f.close();
+  }
+  void Handle_cunfigure_wifi(){
+    server.send(200, "text/html", "we change wifi config");
+  }
+  void Handle_cunfigure_time(){
+    server.send(200, "text/html", "We chenge time config");
+  }
+  void Handle_format_spiffs(){
+    server.send(200, "text/html", "We format SPIFFS");
+    Serial.println("Please wait 30 secs for SPIFFS to be formatted");
+    SPIFFS.format();
+    Serial.println("Spiffs formatted");
   }
 //--
 
@@ -289,4 +304,8 @@ void get_temp(){
   //6 - wi-fi не подключена
   //4 - В режиме точки доступа
 //--
- 
+
+
+ void test(){
+  
+}

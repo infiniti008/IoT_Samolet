@@ -3,6 +3,7 @@
     font-size: 30px;
     font-weight: bold;
     vertical-align: center;
+    background: salmon;
 }
 
 #div_page {
@@ -14,4 +15,31 @@
 #temp {
     font-family: Cambria, Cochin, Georgia, Times, Times New Roman, serif;
     font-size: 50px;
+}
+
+.btn_confirm {
+    border: 3px solid #7586AC;
+    border-radius: 5px;
+    background: #00AF64;
+    height: 50px;
+    font-size: 20px;
+    font-family: monospace;
+    margin-top: 15px;
+    margin-left: 8px;
+}
+
+.btn_confirm:hover {
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
+}
+
+#config_wifi {
+    background: skyblue;
+    padding: 10px;
+    /*border: 1px solid black;*/
+}
+
+#config_time {
+    font-size: 18px;
+    background: goldenrod;
+    padding: 10px;
 }
