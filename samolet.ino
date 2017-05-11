@@ -177,8 +177,13 @@ void wi_setup(){
       String page_config = Page_config();
       server.send(200, "text/html", page_config);
     });
+    server.on("/get_temperature", [](){
+      String temp_to_get = String(temperature);
+      server.send(200, "text/html", temp_to_get);
+    });
     server.begin();
     Serial.println("HTTP server started");
+    server.serveStatic("/", SPIFFS, "/", "max-age=86400");
   }
 //--
 //++ Фукции роутера
@@ -187,13 +192,9 @@ void wi_setup(){
     if (!f) {
         Serial.println("file open failed");
     }
-    String s = "";
+    String s = f.readStringUntil('&');
     String page_home = Page_home();
 //    for (int i=1; i<=14; i++){
-      s = s + f.readStringUntil('&');
-//      Serial.print(i);
-//      Serial.print(":");
-      Serial.println(s);
 //    }
     server.send(200, "text/html", s);
     f.close();

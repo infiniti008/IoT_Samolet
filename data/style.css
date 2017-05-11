@@ -1,0 +1,17 @@
+#span_head {
+    font-family: monospace;
+    font-size: 30px;
+    font-weight: bold;
+    vertical-align: center;
+}
+
+#div_page {
+    text-align: center;
+    padding: 20px;
+    border: 1px solid black;
+}
+
+#temp {
+    font-family: Cambria, Cochin, Georgia, Times, Times New Roman, serif;
+    font-size: 50px;
+}
