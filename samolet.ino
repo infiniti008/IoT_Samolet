@@ -37,12 +37,12 @@
   byte led_wifi = D1;
 //--
 
-
+String new_ssid;// = "slava_asus";
+String new_pass;// = "11111111";
 char *ssid_ap = "espmcu2"; // ssid to access point
-char *ssid_con;// = "White_Room"; // ssid to conection
-char *password_con;// = "donaldtrump"; // password to ssid_con
+
 byte n = 0; // Счетчик времени подключения к сети
-byte tim = 30; //Время ожидания подключения к сети
+byte tim = 35; //Время ожидания подключения к сети
 byte wifi_stat=2; //0 - ap, 1 - client
 
 ESP8266WebServer server(80);
@@ -50,7 +50,7 @@ ESP8266WebServer server(80);
 void setup() {
   Serial.begin(115200);
   SPIFFS.begin();
-  test_read();
+  read_conf();
   //++ Старт обработки датчика температуры
     sensors.begin();
     get_temp();
@@ -127,6 +127,19 @@ void loop() {
 
 //++ Функция подключения к wifi
 void wi_setup(){
+  read_wifi();
+  char ssid_con[new_ssid.length() + 1];
+  char password_con[new_pass.length() + 1];
+  new_ssid.toCharArray(ssid_con, new_ssid.length() + 1);
+  new_pass.toCharArray(password_con, new_pass.length() + 1);
+  Serial.print("'");
+  Serial.print(ssid_con);
+  Serial.println("'");
+  Serial.print("'");
+  Serial.print(password_con);
+  Serial.println("'");
+
+  
   // Constant
   n = 0;
   // Connect to your WiFi network
@@ -177,8 +190,9 @@ void wi_setup(){
       server.send(200, "text/html", temp_to_get);
     });
 
-    server.on("/test_write", test_write);
-    server.on("/test_read", test_read);
+    server.on("/test_write", write_conf);
+    server.on("/read_conf", read_conf);
+    server.on("/read_wifi", read_wifi);
     
     server.on("/cunfigure_wifi", Handle_cunfigure_wifi);
     server.on("/cunfigure_time", Handle_cunfigure_time);
@@ -200,8 +214,8 @@ void wi_setup(){
     }
     s.replace("{{temp}}", String(temperature));
     
-    s.replace("{{ssid}}", String(ssid_con));
-    s.replace("{{pass}}", String(password_con));
+    s.replace("{{ssid}}", String(new_ssid));
+    s.replace("{{pass}}", String(new_pass));
     s.replace("{{delay_get_temp}}", String(sensor_do_time));
     s.replace("{{delay_led_temp}}", String(mig_temp_time));
     s.replace("{{delay_led_wifi}}", String(mig_wifi_time));
@@ -212,12 +226,26 @@ void wi_setup(){
   void Handle_cunfigure_wifi(){
     server.send(200, "text/html", "we change wifi config");
     if(server.arg("ssid") != ""){
-      server.arg("ssid").toCharArray(ssid_con, server.arg("ssid").length() + 1);
+      new_ssid = server.arg("ssid");
+//      server.arg("ssid").toCharArray(ssid_con, server.arg("ssid").length() + 1);
     }
     if(server.arg("pass") != ""){
-      server.arg("pass").toCharArray(password_con, server.arg("pass").length() + 1);
+      new_pass = server.arg("pass");
+//      server.arg("pass").toCharArray(password_con, server.arg("pass").length() + 1);
     }
-    test_write();
+    Serial.println("new conf");
+    Serial.println(new_ssid);
+    Serial.println(new_pass);
+    write_wifi();
+    server.stop();
+    delay(200);
+    WiFi.disconnect();
+    delay(200);
+    WiFi.mode(WIFI_OFF);
+    delay(200);
+  
+    //Restart connection
+    wi_setup();
   }
   void Handle_cunfigure_time(){
     server.send(200, "text/html", "We change time config");
@@ -233,7 +261,7 @@ void wi_setup(){
       mig_wifi_time = server.arg("delay_led_wifi").toInt();
       delay_wifi_do.start(mig_wifi_time*1000, AsyncDelay::MILLIS);
     }
-    test_write();
+    write_conf();
   }
   void Handle_format_spiffs(){
     server.send(200, "text/html", "We format SPIFFS. Please wait 30 secs for SPIFFS to be formatted");
@@ -337,54 +365,79 @@ void get_temp(){
   //4 - В режиме точки доступа
 //--
 
+ void write_wifi(){
+    server.send(200, "text/html", "write wifi conf success");
+    //Первый файл - SSID
+    File ssid = SPIFFS.open("/ssid.txt", "w");
+    if (!ssid) {
+      Serial.println("file creation failed");
+    }
+    ssid.print(new_ssid);
+    ssid.close();
+    //Второй файл - Password
+    File pass = SPIFFS.open("/pass.txt", "w");
+    if (!pass) {
+      Serial.println("file creation failed");
+    }
+    pass.print(new_pass);
+    pass.close();
+}
 
- void test_write(){
-  File conf = SPIFFS.open("/config.txt", "w");
+void read_wifi(){
+  server.send(200, "text/html", "read wifi conf success");
+  File ssid = SPIFFS.open("/ssid.txt", "r");
+    if (!ssid) {
+        Serial.println("File doesn't exist yet");
+    } 
+    else {
+      new_ssid = ssid.readString();
+    } 
+    ssid.close();
+    File pass = SPIFFS.open("/pass.txt", "r");
+    if (!pass) {
+        Serial.println("File doesn't exist yet");
+    } 
+    else {
+      new_pass = pass.readString();
+    } 
+    pass.close();
+}
+
+ void write_conf(){
+  server.send(200, "text/html", "write time conf success");
+  File conf = SPIFFS.open("/param.txt", "w");
     if (!conf) {
       Serial.println("file creation failed");
     }
-    //Первая строка - SSID
-    conf.println(String(ssid_con));
-    //Вторая строка - Password
-    conf.println(String(password_con));
-    //Третья строка - период сканирования температуры
+    //Первая строка - период сканирования температуры
     conf.println(String(sensor_do_time));
-    //Четвертая строка - период моргания светодиода температуры
+    //Вторая строка - период моргания светодиода температуры
     conf.println(String(mig_temp_time));
-    //Пятая строка - период моргания светодиода WiFi
+    //Третья строка - период моргания светодиода WiFi
     conf.println(String(mig_wifi_time));
     conf.close();
 }
-void test_read(){
-  File conf = SPIFFS.open("/config.txt", "r");
+void read_conf(){
+  server.send(200, "text/html", "read time conf success");
+  File conf = SPIFFS.open("/param.txt", "r");
     if (!conf) {
         Serial.println("File doesn't exist yet");
     } else {
-      for (int i=1; i<=5; i++){
+      for (int i=1; i<=3; i++){
         String str=conf.readStringUntil('\n');
         if(i == 1){
-          Serial.print("SSID");
-          Serial.print(" : ");
-          Serial.println(str);
-        }
-        else if(i == 2){
-          Serial.print("Password");
-          Serial.print(" : ");
-          Serial.println(str);
-        }
-        else if(i == 3){
           sensor_do_time = str.toInt();
           Serial.print("sensor_do_time");
           Serial.print(" : ");
           Serial.println(sensor_do_time);
         }
-        else if(i == 4){
+        else if(i == 2){
           mig_temp_time = str.toInt();
           Serial.print("mig_temp_time");
           Serial.print(" : ");
           Serial.println(mig_temp_time);
         }
-        else if(i == 5){
+        else if(i == 3){
           mig_wifi_time = str.toInt();
           Serial.print("mig_wifi_time");
           Serial.print(" : ");
@@ -392,5 +445,6 @@ void test_read(){
         }
       }
     }
+  conf.flush();
   conf.close();
 }
